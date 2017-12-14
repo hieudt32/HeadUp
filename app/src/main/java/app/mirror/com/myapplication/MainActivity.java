@@ -16,14 +16,15 @@ public class MainActivity extends AppCompatActivity {
   private AnimatorSet mSetLeftIn;
 
   MirrorRelativeLayout mFlipLayoutFront;
-  MirrorRelativeLayout mFlipLayoutBack;
   private boolean mIsBackVisible = false;
 
   Button flip;
   TextView mSpeed;
   ImageView mNavigation;
   int speed = 0;
+  final String KM = "Km/h";
   Handler mHandler = new Handler();
+  Runnable mThread;
   //  private static final String[] PERMISSIONS = new String[]{Manifest.permission.WRITE_SETTINGS};
 //  private static final int CODE = 1001;
 
@@ -37,10 +38,20 @@ public class MainActivity extends AppCompatActivity {
     flip = findViewById(R.id.flip);
     changeCameraDistance();
     loadAnimations();
+    mThread = new Runnable() {
+      @Override
+      public void run() {
+        mSpeed.setText(String.valueOf(speed + KM));
+        speed++;
+        if (speed > 100) speed = 0;
+        mHandler.postDelayed(this, 1000);
+      }
+    };
     flip.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         if (!mIsBackVisible) {
+          mHandler.post(mThread);
           mSetRightOut.setTarget(mFlipLayoutFront);
           mSetLeftIn.setTarget(mFlipLayoutFront);
           mFlipLayoutFront.setFlip(true);
@@ -57,18 +68,13 @@ public class MainActivity extends AppCompatActivity {
         }
       }
     });
-    mHandler.postAtTime(new Runnable() {
-      @Override
-      public void run() {
-//        mSpeed.setText(speed);
-        speed++;
-      }
-    }, 1000);
+
   }
 
   @Override
   protected void onPause() {
     super.onPause();
+    mHandler.removeCallbacks(mThread);
   }
 
   private void changeCameraDistance() {
